@@ -1,19 +1,24 @@
 pipeline {
-    agent any // Главный агент Jenkins
+    agent any 
 
+    // Определяем переменные
     environment {
-        // Замените на ваш логин DockerHub
+        // Ваш логин DockerHub (уже исправлено на AviciiG)
         DOCKER_IMAGE = 'AviciiG/python-devops:latest' 
         DOCKERFILE_NAME = 'Dockerfile_Rasul'
     }
 
     stages {
-        stage('Build Setup') {
+        stage('Build Setup (Python Lint)') {
+            // Используем Docker-агент для этой стадии. 
+            // Это гарантирует, что команда 'python3' будет найдена внутри контейнера python:3.9-slim.
             agent {
-                // Исполняем команду внутри контейнера с Python
-                docker { image 'python:3.9-slim' } 
+                docker { 
+                    image 'python:3.9-slim' 
+                } 
             }
             steps {
+                echo 'Starting Python syntax check...'
                 // Проверка синтаксиса Python
                 sh 'python3 -m py_compile app.py'
                 echo 'Python syntax check passed.'
@@ -21,10 +26,11 @@ pipeline {
         }
         
         stage('Docker Build') {
-            agent any // Возвращаемся к основному агенту (Jenkins) для использования Docker на хосте
+            // Используем основной агент, чтобы выполнить команду 'docker' на хост-машине (вашем Маке)
+            agent any 
             steps {
-                // Сборка образа (должен быть установлен Docker на хосте Jenkins)
-                // Используем ваш именованный Dockerfile
+                echo 'Building Docker image...'
+                // Сборка образа с использованием вашего именованного Dockerfile
                 sh "docker build -f ${DOCKERFILE_NAME} -t ${DOCKER_IMAGE} ."
             }
         }
@@ -32,7 +38,8 @@ pipeline {
         stage('Push to Hub') {
             agent any
             steps {
-                // Пуш в Docker Hub (используем ранее настроенные credentials 'docker-hub-creds')
+                echo 'Pushing image to Docker Hub...'
+                // Используем заранее созданные в Jenkins Credential ID: 'docker-hub-creds'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                     sh 'docker login -u $USER -p $PASS'
                     sh "docker push ${DOCKER_IMAGE}"
@@ -43,9 +50,10 @@ pipeline {
         stage('Deploy to K8s') {
             agent any
             steps {
-                // В этом задании, мы просто скажем, что этот шаг выполнен,
-                // так как kubectl и кластер K8s не запущены в контейнере Jenkins.
-                echo "Simulating deployment to Kubernetes using kubectl apply -f k8s_manifests/"
+                echo 'Simulating deployment to Kubernetes...'
+                // Этот шаг покажет, что манифесты готовы, но не будет выполняться,
+                // так как kubectl не настроен внутри контейнера Jenkins.
+                sh "echo Deployment started: kubectl apply -f k8s_manifests/"
             }
         }
     }
