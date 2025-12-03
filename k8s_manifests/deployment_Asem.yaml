@@ -18,7 +18,7 @@ spec:
       containers:
       - name: python-app-rasul
         # Твой локально собранный образ
-        image: aviciig/python-devops:latest 
+        image: asem505rav/python-devops:latest 
         
         # ВАЖНО: Запрещаем качать из интернета, используем локальный образ
         imagePullPolicy: Never 

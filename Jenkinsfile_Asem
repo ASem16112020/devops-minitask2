@@ -28,7 +28,7 @@ pipeline {
             agent any
             steps {
                 echo 'Building Docker image...'
-                // Команда сборки образа с указанием вашего именованного Dockerfile
+                // Команда сборки образа с указанием именованного Dockerfile
                 sh "docker build -f ${DOCKERFILE_NAME} -t ${DOCKER_IMAGE} ."
                 echo "Image ${DOCKER_IMAGE} built successfully locally."
             }
