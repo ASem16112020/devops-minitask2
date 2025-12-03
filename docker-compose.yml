@@ -3,7 +3,7 @@ services:
   web-app:
     build:
       context: .
-      dockerfile: Dockerfile_Rasul
+      dockerfile: Dockerfile_Asem
     ports:
       - "8080:8080"
     depends_on:

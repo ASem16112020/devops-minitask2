@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: python-app-deployment-rasul
+  name: python-app-deployment-Asem
   labels:
     app: python-devops
-    owner: rasul
+    owner: Asem
 spec:
   replicas: 2
   selector:
@@ -16,7 +16,7 @@ spec:
         app: python-devops
     spec:
       containers:
-      - name: python-app-rasul
+      - name: python-app-Asem
         # Твой локально собранный образ
         image: asem505rav/python-devops:latest 
         
@@ -40,21 +40,21 @@ spec:
         - name: DB_HOST
           valueFrom:
             configMapKeyRef:
-              name: app-config-rasul
+              name: app-config-asem
               key: db_host
         - name: DB_NAME
           valueFrom:
             configMapKeyRef:
-              name: app-config-rasul
+              name: app-config-asem
               key: db_name
         # Подтягиваем пароль из Secret
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: app-secret-rasul
+              name: app-secret-asem
               key: db_user
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
-              name: app-secret-rasul
+              name: app-secret-asem
               key: db_password

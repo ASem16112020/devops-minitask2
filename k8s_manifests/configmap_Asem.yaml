@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config-rasul
+  name: app-config-Asem
 data:
   db_host: "mysql-service"
   db_name: "devops_lab"

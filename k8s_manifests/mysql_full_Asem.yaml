@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mysql-deployment-rasul
+  name: mysql-deployment-Asem
   labels:
     app: mysql-db
 spec:
@@ -25,17 +25,17 @@ spec:
         - name: MYSQL_DATABASE
           valueFrom:
             configMapKeyRef:
-              name: app-config-rasul
+              name: app-config-Asem
               key: db_name
         - name: MYSQL_USER
           valueFrom:
             secretKeyRef:
-              name: app-secret-rasul
+              name: app-secret-Asem
               key: db_user
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: app-secret-rasul
+              name: app-secret-Asem
               key: db_password
         ports:
         - containerPort: 3306

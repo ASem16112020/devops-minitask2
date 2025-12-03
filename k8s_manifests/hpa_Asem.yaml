@@ -1,14 +1,14 @@
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: python-app-hpa-rasul
+  name: python-app-hpa-Asem
   labels:
-    owner: rasul
+    owner: Asem
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: python-app-deployment-rasul # Должно совпадать с именем в deployment_Rasul.yaml
+    name: python-app-deployment-Asem # Должно совпадать с именем в deployment_Asem.yaml
   minReplicas: 2
   maxReplicas: 5
   targetCPUUtilizationPercentage: 50

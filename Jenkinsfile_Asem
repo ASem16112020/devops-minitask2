@@ -5,8 +5,8 @@ pipeline {
     // Определяем переменные
     environment {
         // Мы все равно определяем имя образа для локальной сборки
-        DOCKER_IMAGE = 'aviciig/python-devops:latest' 
-        DOCKERFILE_NAME = 'Dockerfile_Rasul'
+        DOCKER_IMAGE = 'asem505rav/python-devops:latest' 
+        DOCKERFILE_NAME = 'Dockerfile_Asem'
     }
 
     stages {
