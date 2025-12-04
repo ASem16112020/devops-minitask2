@@ -1,45 +1,77 @@
 pipeline {
-    // Используем 'agent none' глобально
-    agent none 
+    // Глобально используем любой доступный агент, если иное не указано в stage.
+    // Это гарантирует, что рабочая директория (workspace) сохраняется между этапами.
+    agent any 
 
-    // Определяем переменные
     environment {
-        // Мы все равно определяем имя образа для локальной сборки
         DOCKER_IMAGE = 'asem505rav/python-devops:latest' 
-        DOCKERFILE_NAME = 'Dockerfile_Asem'
+        // В Declarative Pipeline 'Dockerfile' должен быть в корне, 
+        // если вы не указываете buildArgs. Переименуем переменную для ясности.
+        DOCKERFILE_PATH = 'Dockerfile_asem'
+        
+        // Добавим переменную для установки kubectl (см. новый этап ниже)
+        KUBECTL_ARCH = 'arm64' // Проверено по вашим предыдущим логам
     }
 
     stages {
-        stage('Build Setup (Python Lint)') {
-            steps {
-                echo 'Starting Python syntax check inside Python container...'
-                // Шаг 1: Проверка синтаксиса Python внутри временного контейнера
-                script {
-                    docker.image('python:3.9-slim').inside { 
-                        sh 'python3 -m py_compile app.py'
-                        echo 'Python syntax check passed.'
-                    }
+        // --- ЭТАП 1: LINTING (Используем контейнер Docker) ---
+        stage('1. Python Lint & Syntax Check') {
+            // Запускаем этот этап внутри Docker-контейнера.
+            // Jenkins автоматически очистит контейнер после завершения.
+            agent {
+                docker {
+                    image 'python:3.9-slim'
+                    args '-u root' // Иногда нужно для установки пакетов
                 }
             }
-        }
-        
-        stage('Docker Build') {
-            // Шаг 2: Сборка Docker-образа на хосте
-            agent any
             steps {
-                echo 'Building Docker image...'
-                // Команда сборки образа с указанием именованного Dockerfile
-                sh "docker build -f ${DOCKERFILE_NAME} -t ${DOCKER_IMAGE} ."
-                echo "Image ${DOCKER_IMAGE} built successfully locally."
+                echo 'Starting Python linting inside Docker container...'
+                sh '''
+                    # 1. Установим Flake8 (или pylint) для качественного линтинга
+                    pip install flake8
+                    
+                    # 2. Выполним проверку кода
+                    flake8 app.py --max-line-length=120
+                '''
+                echo '✅ Python linting and syntax check passed.'
             }
         }
         
-        stage('Deploy Simulation') {
-            // Шаг 3: Имитация деплоя
-            agent any
+        // --- ЭТАП 2: СБОРКА ОБРАЗА ---
+        stage('2. Docker Build') {
             steps {
-                echo 'Skipping Push to Docker Hub, proceeding to Deploy Simulation...'
-                echo 'Simulating deployment to Kubernetes using kubectl apply...'
+                echo 'Building Docker image...'
+                // Используем полный путь к Dockerfile
+                sh "docker build -f ${DOCKERFILE_PATH} -t ${DOCKER_IMAGE} ."
+                echo "✅ Image ${DOCKER_IMAGE} built successfully."
+            }
+        }
+        
+        // --- НОВЫЙ ЭТАП: УСТАНОВКА KUBECTL ---
+        stage('3. Install Kubectl') {
+            steps {
+                echo '⬇️ Installing kubectl for deployment simulation...'
+                sh '''
+                    KUBE_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+                    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$KUBE_VERSION/bin/linux/${KUBECTL_ARCH}/kubectl"
+                    chmod +x kubectl
+                    
+                    # Перемещаем в каталог, который находится в PATH (например, /usr/local/bin/)
+                    mv kubectl /usr/local/bin/
+                    
+                    kubectl version --client
+                '''
+                echo '✅ Kubectl is installed.'
+            }
+        }
+        
+        // --- ЭТАП 4: ИМИТАЦИЯ ДЕПЛОЯ (Dry Run) ---
+        stage('4. Deploy Simulation (Dry Run)') {
+            steps {
+                echo '🚀 Simulating deployment to Kubernetes...'
+                // Используем kubectl, который был установлен на предыдущем шаге
+                sh "kubectl apply -f k8s_manifests/deployment_Asem.yaml --dry-run=client"
+                echo '✅ Kubernetes manifests are valid.'
             }
         }
     }
